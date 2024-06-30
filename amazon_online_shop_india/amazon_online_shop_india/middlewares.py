@@ -9,7 +9,7 @@ from scrapy import signals
 from itemadapter import is_item, ItemAdapter
 
 
-class AmazonIndiaSpiderMiddleware:
+class AmazonOnlineShopIndiaSpiderMiddleware:
     # Not all methods need to be defined. If a method is not defined,
     # scrapy acts as if the spider middleware does not modify the
     # passed objects.
@@ -56,7 +56,7 @@ class AmazonIndiaSpiderMiddleware:
         spider.logger.info("Spider opened: %s" % spider.name)
 
 
-class AmazonIndiaDownloaderMiddleware:
+class AmazonOnlineShopIndiaDownloaderMiddleware:
     # Not all methods need to be defined. If a method is not defined,
     # scrapy acts as if the downloader middleware does not modify the
     # passed objects.
@@ -101,3 +101,37 @@ class AmazonIndiaDownloaderMiddleware:
 
     def spider_opened(self, spider):
         spider.logger.info("Spider opened: %s" % spider.name)
+import random
+import requests
+from urllib.parse import urlencode
+class RandomHeaderMiddleware:
+    def __init__(self, settings):
+        self.api_key = settings.get("SCRAPEOPS_API_KEY")
+        self.end_point = settings .get("ENDPOINT")
+        self.num_results = settings.get("NUM_RESULT")
+        self.fake_headers_list = self.get_fake_headers()
+    def get_fake_headers(self):
+        params = {
+            "api_key": self.api_key,
+            "num_results": self.num_results,
+            }
+        print('params')
+        print(params)
+        response = requests.get(self.end_point, params=urlencode(params)).json()['result']
+        return response
+
+    @classmethod
+    def from_crawler(cls, crawler):
+        return cls(crawler.settings)
+
+    def process_request(self, request, spider):
+        random_num = random.randrange(0, len(self.fake_headers_list))
+        hearder = self.fake_headers_list[random_num]
+
+        # Scrapping c'est pas tous les headers qu'on doit modifier mais une partie de certains elements en fonction du cas present mais ceci est juste une introduction
+        for key, value in hearder.items():
+            request.headers[key] = value
+
+        print('*************** New Header ***************')
+        print(request.headers)
+        print('******************************************')

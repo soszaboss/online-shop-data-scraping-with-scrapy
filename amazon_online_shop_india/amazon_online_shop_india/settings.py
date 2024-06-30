@@ -1,8 +1,4 @@
-from dotenv import load_dotenv
-import os
-
-load_dotenv()
-# Scrapy settings for amazon_india project
+# Scrapy settings for amazon_online_shop_india project
 #
 # For simplicity, this file contains only settings considered important or
 # commonly used. You can find more settings consulting the documentation:
@@ -10,18 +6,30 @@ load_dotenv()
 #     https://docs.scrapy.org/en/latest/topics/settings.html
 #     https://docs.scrapy.org/en/latest/topics/downloader-middleware.html
 #     https://docs.scrapy.org/en/latest/topics/spider-middleware.html
+import os
+from dotenv import load_dotenv
 
-BOT_NAME = "amazon_india"
+load_dotenv()
 
-SPIDER_MODULES = ["amazon_india.spiders"]
-NEWSPIDER_MODULE = "amazon_india.spiders"
+BOT_NAME = "amazon_online_shop_india"
+
+SPIDER_MODULES = ["amazon_online_shop_india.spiders"]
+NEWSPIDER_MODULE = "amazon_online_shop_india.spiders"
 
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
-#USER_AGENT = "amazon_india (+http://www.yourdomain.com)"
+#USER_AGENT = "amazon_online_shop_india (+http://www.yourdomain.com)"
 
 # Obey robots.txt rules
-ROBOTSTXT_OBEY = True
+ROBOTSTXT_OBEY = False
+FEEDS = {
+   "products.json": {"format": "json", "overwrite": True},
+}
+
+SCRAPEOPS_API_KEY = os.environ.get('SCRAPEOPS_API_KEY')
+ENDPOINT = os.environ.get("ENDPOINT")
+NUM_RESULT = os.environ.get("NUM_RESULT")
+SCRAPEOPS_PROXY_ENABLED = True
 
 # Configure maximum concurrent requests performed by Scrapy (default: 16)
 #CONCURRENT_REQUESTS = 32
@@ -48,15 +56,17 @@ ROBOTSTXT_OBEY = True
 
 # Enable or disable spider middlewares
 # See https://docs.scrapy.org/en/latest/topics/spider-middleware.html
-#SPIDER_MIDDLEWARES = {
-#    "amazon_india.middlewares.AmazonIndiaSpiderMiddleware": 543,
-#}
+# SPIDER_MIDDLEWARES = {
+#    "amazon_online_shop_india.middlewares.AmazonOnlineShopIndiaSpiderMiddleware": 543,
+
+# }
 
 # Enable or disable downloader middlewares
 # See https://docs.scrapy.org/en/latest/topics/downloader-middleware.html
-#DOWNLOADER_MIDDLEWARES = {
-#    "amazon_india.middlewares.AmazonIndiaDownloaderMiddleware": 543,
-#}
+DOWNLOADER_MIDDLEWARES = {
+   # "amazon_online_shop_india.middlewares.AmazonOnlineShopIndiaDownloaderMiddleware": 543,
+   "amazon_online_shop_india.middlewares.RandomHeaderMiddleware": 543,
+}
 
 # Enable or disable extensions
 # See https://docs.scrapy.org/en/latest/topics/extensions.html
@@ -66,9 +76,9 @@ ROBOTSTXT_OBEY = True
 
 # Configure item pipelines
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
-#ITEM_PIPELINES = {
-#    "amazon_india.pipelines.AmazonIndiaPipeline": 300,
-#}
+ITEM_PIPELINES = {
+   "amazon_online_shop_india.pipelines.AmazonOnlineShopIndiaPipeline": 300,
+}
 
 # Enable and configure the AutoThrottle extension (disabled by default)
 # See https://docs.scrapy.org/en/latest/topics/autothrottle.html
@@ -95,12 +105,3 @@ ROBOTSTXT_OBEY = True
 REQUEST_FINGERPRINTER_IMPLEMENTATION = "2.7"
 TWISTED_REACTOR = "twisted.internet.asyncioreactor.AsyncioSelectorReactor"
 FEED_EXPORT_ENCODING = "utf-8"
-
-
-SCRAPEOPS_API_KEY = os.environ.get('SCRAPEOPS_API_KEY')
-SCRAPEOPS_PROXY_ENABLED = True
-
-DOWNLOADER_MIDDLEWARES = {
-    'scrapeops_scrapy_proxy_sdk.scrapeops_scrapy_proxy_sdk.ScrapeOpsScrapyProxySdk': 725,
-}
-
