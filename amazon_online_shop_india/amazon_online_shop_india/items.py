@@ -15,3 +15,4 @@ class AmazonOnlineShopIndiaItem(scrapy.Item):
     product_details = scrapy.Field()
     descriptions = scrapy.Field()
     About_this_item = scrapy.Field()
+    img_url = scrapy.Field(serializer=str)

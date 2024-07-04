@@ -8,6 +8,8 @@
 from itemadapter import ItemAdapter
 from .functions import list_product_details_into_dict
 
+
+
 class AmazonOnlineShopIndiaPipeline:
     
     def process_item(self, item, spider):

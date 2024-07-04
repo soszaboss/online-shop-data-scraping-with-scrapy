@@ -37,6 +37,7 @@ class AnyWomenClothesProductsSpider(scrapy.Spider):
         items['product_details'] = response.css('div.a-fixed-left-grid-col span .a-color-base::text').getall()
         items['About_this_item'] = response.css('span.a-list-item.a-size-base.a-color-base::text').getall()
         items['descriptions'] = response.css('p.description').get()
+        items['img_url'] = response.css('img.a-dynamic-image.a-stretch-horizontal::attr(src)').get()
 
         yield items
 
