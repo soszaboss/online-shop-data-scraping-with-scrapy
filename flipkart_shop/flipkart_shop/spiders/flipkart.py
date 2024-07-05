@@ -9,21 +9,30 @@ class FlipkartSpider(scrapy.Spider):
         self.actual_subcategory = ''
 
     def start_requests(self):
-        for subcategory in self.sub_categories:
-            url = f'https://www.flipkart.com/search?q={subcategory}'
-            self.actual_subcategory = subcategory.split('+')[1]
-            yield scrapy.Request(url, meta=dict(
-                    playwright = True,
-                    playwright_include_page = True, 
-                    playwright_page_methods =[
-                    PageMethod('wait_for_selector', 'a.WKTcLC'),
-                    ],
-            errback=self.errback,
-                ))
+        # for subcategory in self.sub_categories:
+        #     url = f'https://www.flipkart.com/search?q={subcategory}'
+        #     self.actual_subcategory = subcategory.split('+')[1]
+        url = f'https://www.flipkart.com/search?q=women+lehenga'
+        yield scrapy.Request(url, meta=dict(
+                playwright = True,
+                playwright_include_page = True, 
+                playwright_page_methods =[
+                PageMethod('wait_for_selector', 'a.WKTcLC'),
+                ],
+        errback=self.errback,
+            ))
     async def parse(self, response):
         page = response.meta["playwright_page"]
-        await page.close()
+        try:
+            await page.wait_for_selector("a._9QVEpD:has-text('Next')")
+        except:
+            next_page = None
+        else:
+            next_page = await page.locator("a._9QVEpD:has-text('Next')").get_attribute('href')
+        finally:
+            await page.close()
 
+        products_links = response.css('a.WKTcLC::attr(href)').getall()
         products_links = response.css('a.WKTcLC::attr(href)').getall()
         products_links = [f'https://www.flipkart.com{link}' for link in products_links]
 
@@ -44,18 +53,21 @@ class FlipkartSpider(scrapy.Spider):
             yield request
 
             
-
-        next_page = response.css('a._9QVEpD::attr(href)').get()
+        
+        print('next_page')
+        print(next_page)
+        print('next_page_url')
+        
         if next_page is not None:
             next_page_url = 'https://www.flipkart.com' + next_page
             yield scrapy.Request(next_page_url, meta=dict(
-                playwright = True,
-                playwright_include_page = True, 
-                playwright_page_methods =[
-                PageMethod('wait_for_selector', 'a.WKTcLC'),
-                ],
-        errback=self.errback,
-            ))
+                                                            playwright = True,
+                                                            playwright_include_page = True, 
+                                                            playwright_page_methods =[
+                                                                                        PageMethod('wait_for_selector', 'a.WKTcLC'),
+                                                                                    ],
+                                                                            errback=self.errback,
+                                                                ))
 
 
     async def parse_products(self, response):
@@ -96,7 +108,7 @@ class FlipkartSpider(scrapy.Spider):
             items['img_url'] = response.css('img._0DkuPH::attr(src)').get()
             items['size'] = response.css('a.CDDksN.zmLe5G.dpZEpc::text').getall()
             items['is_size'] = True if items['size'] else False
-            items['subcategory'] = self.actual_subcategory
+            items['subcategory'] = 'Lehenga'
             items['category'] = 'Women'
             yield items
 
