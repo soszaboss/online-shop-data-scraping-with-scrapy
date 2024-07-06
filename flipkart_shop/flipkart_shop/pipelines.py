@@ -18,7 +18,7 @@ def transform_size_chart(size_chart):
         for j in range(num_columns):
             size_chart_dict[keys[j]].append(values[i + j])
     
-    return size_chart_dict
+    return [size_chart_dict]
 class FlipkartShopPipeline:
     def process_item(self, item, spider):
         adapter = ItemAdapter(item)
