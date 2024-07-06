@@ -5,14 +5,14 @@ class FlipkartSpider(scrapy.Spider):
     name = "flipkart"
     allowed_domains = ["www.flipkart.com"]
     def __init__(self):
-        self.sub_categories = [ 'Women+lehenga', 'women+kameez']
+        self.sub_categories = [ 'lehenga', 'kameez', 'salwar', 'sari']
         self.actual_subcategory = ''
 
     def start_requests(self):
         # for subcategory in self.sub_categories:
         #     url = f'https://www.flipkart.com/search?q={subcategory}'
         #     self.actual_subcategory = subcategory.split('+')[1]
-        url = f'https://www.flipkart.com/search?q=women+lehenga'
+        url = f'https://www.flipkart.com/search?q=women+sari'
         yield scrapy.Request(url, meta=dict(
                 playwright = True,
                 playwright_include_page = True, 
@@ -108,7 +108,7 @@ class FlipkartSpider(scrapy.Spider):
             items['img_url'] = response.css('img._0DkuPH::attr(src)').get()
             items['size'] = response.css('a.CDDksN.zmLe5G.dpZEpc::text').getall()
             items['is_size'] = True if items['size'] else False
-            items['subcategory'] = 'Lehenga'
+            items['subcategory'] = 'Sari'
             items['category'] = 'Women'
             yield items
 

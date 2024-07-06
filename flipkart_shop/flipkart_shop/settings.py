@@ -13,9 +13,9 @@ SPIDER_MODULES = ["flipkart_shop.spiders"]
 NEWSPIDER_MODULE = "flipkart_shop.spiders"
 
 FEEDS = {
-   "products.json": {"format": "json", "overwrite": True},
+   "products.json": {"format": "json", "overwrite": False},
 }
-
+CLOSESPIDER_TIMEOUT_NO_ITEM = 60
 # settings.py
 
 DOWNLOAD_HANDLERS = {
