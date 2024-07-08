@@ -1,0 +1,133 @@
+import scrapy
+from scrapy_playwright.page import PageMethod
+from hm_online_fashion.items import HmOnlineFashionItem
+class HmSpider(scrapy.Spider):
+    name = "hm"
+    allowed_domains = ["www2.hm.com"]
+
+    def start_requests(self):
+        url = "https://www2.hm.com/en_in/sale/women/view-all.html"
+        yield scrapy.Request(
+            url,
+            meta=dict(
+                playwright=True,
+                playwright_include_page=True,
+                playwright_page_methods=[
+                    PageMethod('wait_for_selector', 'a.link'),
+                    # PageMethod("evaluate", "window.scrollBy(0, document.body.scrollHeight)")
+                ],
+                errback=self.errback,
+            )
+        )
+
+    async def parse(self, response):
+        page = response.meta["playwright_page"]
+
+        await page.close()
+        links = [f'https://www2.hm.com{link}' for link in response.css("a.link::attr(href)").getall()[:10]]
+        for link in links:
+            yield scrapy.Request(
+                link,   
+                callback=self.parse_product,
+                meta=dict(
+                    playwright=True,
+                    playwright_include_page=True, 
+                    playwright_page_methods=[
+                        PageMethod('wait_for_selector', 'span.edbe20.ac3d9e.c8e3aa.e29fbf'),
+                        PageMethod('wait_for_selector', 'dt.fa226d.c0e4fd'),
+                        PageMethod('wait_for_selector', 'a.filter-option.miniature')
+                    ],
+                    errback=self.errback,
+                )
+            )
+
+    async def parse_product(self, response):
+        page = response.meta["playwright_page"]
+        items = HmOnlineFashionItem()
+        items['product_name'] = page.locator("h1.Heading-module--general__-9cV9K.ProductName-module--productTitle__3ryCJ.Heading-module--small__6VQbz").text_content()
+        items['description'] = page.locator("p.d1cd7b.b475fe.e2b79d").text_content()
+        items['fit'] = await page.evaluate('''
+                                     document.evaluate(//*[@id="section-descriptionAccordion"]/div/div/dl/div[9]/dd, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null)
+                                     .singleNodeValue
+                                    ''').text_content()
+        items['price'] = page.locator("span.edbe20.ac3d9e.c8e3aa.e29fbf").text_content()
+        items['sizes'] = await page.evaluate("""
+                                        () => {
+                                                return Array.from(document.querySelectorAll('input.SizeButtonGroup-module--buttonInput__2nAE1))
+                                                .map(size => size.value);
+                                            }
+                                        """
+                                        )
+        items['product_details'] = {
+                                    'keys': await page.evaluate("""
+                                        () => {
+                                                return Array.from(document.querySelectorAll('dt.fa226d.c0e4fd))
+                                                .map(key => key.textContent);
+                                            }
+                                        """
+                                        ),
+                                    'values': await page.evaluate("""
+                                        () => {
+                                                return Array.from(document.querySelectorAll('dd.d1cd7b.a09145))
+                                                .map(value => value.textContent);
+                                            }
+                                        """
+                                        ),
+                                    
+                                    }
+        items['color'] = await page.evaluate("""
+                                        () => {
+                                                return Array.from(document.querySelectorAll('a.filter-option'))
+                                                .map(color => color..getAttribute("title"));
+                                            }
+                                        """
+                                        )
+        other_img_colors_products = response.css('a.filter-option.miniature img::attr(src)').getall()
+        items['image_link'] = response.css('div.product-detail-main-image-container img::attr(src)').get()
+        try:
+            items['other_img_colors_products'] = {key:value for key,value in zip(items['color'][1::], other_img_colors_products)}
+        except:
+            items['other_img_colors_products'] = None
+        await page.close()
+        yield items
+    async def errback(self, failure):
+        page = failure.request.meta["playwright_page"]
+        await page.close()
+
+"""bottom scroll with button
+
+
+        # Attendre un sélecteur spécifique indiquant que tous les produits sont chargés
+        # await page.wait_for_selector('a.link')
+
+        # links = set()
+        # while True:
+        #     # Sélectionner le bouton "Load more products" et sortir de la boucle s'il n'est plus dans le DOM
+        #     load_more_button = await page.locator("button.button.js-load-more").element_handle()
+        #     if not load_more_button or not await load_more_button.is_visible():
+        #         break
+            
+        #     # Scroller vers le bas de la page
+        #     await page.evaluate("window.scrollTo(0, document.body.scrollHeight);")
+
+        #     # Cliquer sur le bouton "Load more products" après avoir scrollé en bas
+        #     await load_more_button.click(force=True)
+            
+        #     # Attendre que les produits soient chargés
+        #     # await page.wait_for_timeout(500)
+
+        #     # Récupérer les nouveaux liens des produits
+        #     new_links = await page.evaluate('''() => {
+        #         return Array.from(document.querySelectorAll('a.link')).map(a => a.href);
+        #     }''')
+
+        #     # Ajouter les nouveaux liens à l'ensemble des liens
+        #     initial_len = len(links)
+        #     links.update(new_links)
+
+        #     # Si la longueur de l'ensemble des liens n'a pas changé, il y a des doublons
+        #     if len(links) == initial_len:
+        #         print("La liste contient des doublons.")
+        #         break
+
+"""

@@ -1,119 +1,139 @@
 import scrapy
 from scrapy_playwright.page import PageMethod
 from flipkart_shop.items import Item
+
 class FlipkartSpider(scrapy.Spider):
     name = "flipkart"
     allowed_domains = ["www.flipkart.com"]
-    def __init__(self):
-        self.sub_categories = [ 'lehenga', 'kameez', 'salwar', 'sari']
-        self.actual_subcategory = ''
 
     def start_requests(self):
-        # for subcategory in self.sub_categories:
-        #     url = f'https://www.flipkart.com/search?q={subcategory}'
-        #     self.actual_subcategory = subcategory.split('+')[1]
-        url = f'https://www.flipkart.com/search?q=women+sari'
-        yield scrapy.Request(url, meta=dict(
-                playwright = True,
-                playwright_include_page = True, 
-                playwright_page_methods =[
-                PageMethod('wait_for_selector', 'a.WKTcLC'),
+        """If want to scrape a list of catefory items from flipkart.com
+        
+            urls = ['sari', 'lehenga', 'kameez', 'salwar']
+            for url in urls:
+                url = 'https://www.flipkart.com/search?q=women+sari'
+                yield scrapy.Request(
+                    url, 
+                    meta=dict(
+                        playwright=True,
+                        playwright_include_page=True, 
+                        playwright_page_methods=[
+                            PageMethod('wait_for_selector', 'a.WKTcLC'),
+                        ],
+                        errback=self.errback,
+                    )
+                )
+        """
+        url = 'https://www.flipkart.com/search?q=women+sari'
+        yield scrapy.Request(
+            url, 
+            meta=dict(
+                playwright=True,
+                playwright_include_page=True, 
+                playwright_page_methods=[
+                    PageMethod('wait_for_selector', 'a.WKTcLC'),
                 ],
-        errback=self.errback,
-            ))
+                errback=self.errback,
+            )
+        )
+
     async def parse(self, response):
         page = response.meta["playwright_page"]
-        try:
-            await page.wait_for_selector("a._9QVEpD:has-text('Next')")
-        except:
-            next_page = None
-        else:
-            next_page = await page.locator("a._9QVEpD:has-text('Next')").get_attribute('href')
-        finally:
-            await page.close()
+        await page.close()
 
-        products_links = response.css('a.WKTcLC::attr(href)').getall()
-        products_links = response.css('a.WKTcLC::attr(href)').getall()
-        products_links = [f'https://www.flipkart.com{link}' for link in products_links]
+        product_links = response.css('a.WKTcLC::attr(href)').getall()
+        product_links = [f'https://www.flipkart.com{link}' for link in product_links]
 
-        requests = [scrapy.Request(
-                                    link,   
-                                    callback=self.parse_products,
-                                    meta=dict(
-                                                playwright = True,
-                                                playwright_include_page = True, 
-                                                playwright_page_methods =[
-                                                                            PageMethod('wait_for_selector', 'img._0DkuPH'),
-                                                                            # PageMethod('click', 'li.eVrPKK.dpZEpc'),
-                                                                        ],
-                                                errback=self.errback,
-                                            )
-                                ) for link in products_links]
-        for request in requests:
-            yield request
+        for link in product_links:
+            yield scrapy.Request(
+                link,   
+                callback=self.parse_product,
+                meta=dict(
+                    playwright=True,
+                    playwright_include_page=True, 
+                    playwright_page_methods=[
+                        PageMethod('wait_for_selector', 'span.mEh187'),
+                        PageMethod('wait_for_selector', 'span.VU-ZEz'),
+                        PageMethod('wait_for_selector', 'div.Nx9bqj.CxhGGd'),
+                        PageMethod('wait_for_selector', 'img._0DkuPH'),
+                    ],
+                    errback=self.errback,
+                )
+            )
 
-            
-        
-        print('next_page')
-        print(next_page)
-        print('next_page_url')
-        
-        if next_page is not None:
-            next_page_url = 'https://www.flipkart.com' + next_page
-            yield scrapy.Request(next_page_url, meta=dict(
-                                                            playwright = True,
-                                                            playwright_include_page = True, 
-                                                            playwright_page_methods =[
-                                                                                        PageMethod('wait_for_selector', 'a.WKTcLC'),
-                                                                                    ],
-                                                                            errback=self.errback,
-                                                                ))
+        next_pages = [f'https://www.flipkart.com/search?q=women+sari&page={i}' for i in range(2, 26)]
+        for next_page in next_pages:
+            yield scrapy.Request(
+                next_page, 
+                meta=dict(
+                    playwright=True,
+                    playwright_include_page=True, 
+                    playwright_page_methods=[
+                        PageMethod('wait_for_selector', 'a.WKTcLC'),
+                    ],
+                    errback=self.errback,
+                )
+            )
 
-
-    async def parse_products(self, response):
+    async def parse_product(self, response):
         items = Item()
-        keys_elements = []
-        values_elements = []
         page = response.meta["playwright_page"]
+
         try:
-            # Trigger to show up the modal
             await page.locator("li.eVrPKK.dpZEpc").click(force=True)
             items['is_size_chart'] = True 
         except:
             items['is_size_chart'] = False 
             items['size_chart'] = None
         else:
-            # Wait for the modal
             await page.wait_for_selector("div._8mqQwQ")
-            
-            # Wait until all key elements are present
             await page.wait_for_selector("td.i2HOkF")
             keys_elements = await page.locator("td.i2HOkF").all_text_contents()
-
-            # Wait until all value elements are present
             await page.wait_for_selector("td.ljobKU")
             values_elements = await page.locator("td.ljobKU").all_text_contents()
 
             items['size_chart'] = {'keys': keys_elements, 'values': values_elements}
-
             print(f"Found {len(keys_elements)} keys elements and {len(values_elements)} values elements")
 
         finally:
             await page.close()
 
-            # Extract data from the modal
             items['product_name'] = response.css('span.mEh187::text').get()
             items['description'] = response.css('span.VU-ZEz::text').get()
             items['price'] = response.css('div.Nx9bqj.CxhGGd::text').get()
             items['img_url'] = response.css('img._0DkuPH::attr(src)').get()
             items['size'] = response.css('a.CDDksN.zmLe5G.dpZEpc::text').getall()
-            items['is_size'] = True if items['size'] else False
+            items['is_size'] = bool(items['size'])
             items['subcategory'] = 'Sari'
             items['category'] = 'Women'
             yield items
 
-
-
     async def errback(self, failure):
         page = failure.request.meta["playwright_page"]
         await page.close()
+
+"""next page
+
+ # try:
+        #     await page.wait_for_selector("a._9QVEpD:has-text('Next')")
+        # except:
+        #     next_page = None
+        # else:
+        #     next_page = await page.locator("a._9QVEpD:has-text('Next')").get_attribute('href')
+        # finally:
+        #     await page.close()
+# print('next_page')
+        # print(next_page)
+        # print('next_page_url')
+        
+        # if next_page is not None:
+        #     next_page_url = 'https://www.flipkart.com' + next_page
+        #     yield scrapy.Request(next_page_url, meta=dict(
+        #                                                     playwright = True,
+        #                                                     playwright_include_page = True, 
+        #                                                     playwright_page_methods =[
+        #                                                                                 PageMethod('wait_for_selector', 'a.WKTcLC'),
+        #                                                                             ],
+        #                                                                     errback=self.errback,
+        #                                                         ))
+"""

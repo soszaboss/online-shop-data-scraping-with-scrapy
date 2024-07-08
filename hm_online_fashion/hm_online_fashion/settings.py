@@ -1,4 +1,4 @@
-# Scrapy settings for flipkart_shop project
+# Scrapy settings for hm_online_fashion project
 #
 # For simplicity, this file contains only settings considered important or
 # commonly used. You can find more settings consulting the documentation:
@@ -7,23 +7,23 @@
 #     https://docs.scrapy.org/en/latest/topics/downloader-middleware.html
 #     https://docs.scrapy.org/en/latest/topics/spider-middleware.html
 
-from dotenv import load_dotenv
-import os
+BOT_NAME = "hm_online_fashion"
 
-load_dotenv()
-
-BOT_NAME = "flipkart_shop"
-
-SPIDER_MODULES = ["flipkart_shop.spiders"]
-NEWSPIDER_MODULE = "flipkart_shop.spiders"
-
+SPIDER_MODULES = ["hm_online_fashion.spiders"]
+NEWSPIDER_MODULE = "hm_online_fashion.spiders"
+PLAYWRIGHT_LAUNCH_OPTIONS = {
+    "headless": False,
+} 
 FEEDS = {
    "products.json": {"format": "json", "overwrite": False},
 }
-PLAYWRIGHT_DEFAULT_NAVIGATION_TIMEOUT = (
-    30 * 1000
-)
-CLOSESPIDER_TIMEOUT_NO_ITEM = 600
+
+# PLAYWRIGHT_DEFAULT_NAVIGATION_TIMEOUT = (
+#     30 * 1000
+# )
+
+CLOSESPIDER_TIMEOUT_NO_ITEM = 300
+
 # settings.py
 
 DOWNLOAD_HANDLERS = {
@@ -31,18 +31,10 @@ DOWNLOAD_HANDLERS = {
     "https": "scrapy_playwright.handler.ScrapyPlaywrightDownloadHandler",
 }
 
-
-MONGO_DATABASE = os.environ.get('MONGODB_DB')
-MONGO_URI = os.environ.get('MONGO_URI')
-
-
 TWISTED_REACTOR = "twisted.internet.asyncioreactor.AsyncioSelectorReactor"
-# PLAYWRIGHT_LAUNCH_OPTIONS = {
-#     "headless": False,
-# } 
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
-#USER_AGENT = "flipkart_shop (+http://www.yourdomain.com)"
+#USER_AGENT = "hm_online_fashion (+http://www.yourdomain.com)"
 
 # Obey robots.txt rules
 ROBOTSTXT_OBEY = False
@@ -73,13 +65,13 @@ ROBOTSTXT_OBEY = False
 # Enable or disable spider middlewares
 # See https://docs.scrapy.org/en/latest/topics/spider-middleware.html
 #SPIDER_MIDDLEWARES = {
-#    "flipkart_shop.middlewares.FlipkartShopSpiderMiddleware": 543,
+#    "hm_online_fashion.middlewares.HmOnlineFashionSpiderMiddleware": 543,
 #}
 
 # Enable or disable downloader middlewares
 # See https://docs.scrapy.org/en/latest/topics/downloader-middleware.html
 #DOWNLOADER_MIDDLEWARES = {
-#    "flipkart_shop.middlewares.FlipkartShopDownloaderMiddleware": 543,
+#    "hm_online_fashion.middlewares.HmOnlineFashionDownloaderMiddleware": 543,
 #}
 
 # Enable or disable extensions
@@ -90,9 +82,9 @@ ROBOTSTXT_OBEY = False
 
 # Configure item pipelines
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
-ITEM_PIPELINES = {
-   "flipkart_shop.pipelines.MongoPipeline": 300,
-}
+#ITEM_PIPELINES = {
+#    "hm_online_fashion.pipelines.HmOnlineFashionPipeline": 300,
+#}
 
 # Enable and configure the AutoThrottle extension (disabled by default)
 # See https://docs.scrapy.org/en/latest/topics/autothrottle.html
