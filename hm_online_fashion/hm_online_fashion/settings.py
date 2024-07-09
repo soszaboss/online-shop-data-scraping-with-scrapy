@@ -12,7 +12,7 @@ BOT_NAME = "hm_online_fashion"
 SPIDER_MODULES = ["hm_online_fashion.spiders"]
 NEWSPIDER_MODULE = "hm_online_fashion.spiders"
 PLAYWRIGHT_LAUNCH_OPTIONS = {
-    "headless": False,
+    "headless": True,
 } 
 FEEDS = {
    "products.json": {"format": "json", "overwrite": False},
@@ -22,8 +22,7 @@ FEEDS = {
 #     30 * 1000
 # )
 
-CLOSESPIDER_TIMEOUT_NO_ITEM = 300
-
+CLOSESPIDER_TIMEOUT_NO_ITEM = 600
 # settings.py
 
 DOWNLOAD_HANDLERS = {
@@ -82,9 +81,9 @@ ROBOTSTXT_OBEY = False
 
 # Configure item pipelines
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
-#ITEM_PIPELINES = {
-#    "hm_online_fashion.pipelines.HmOnlineFashionPipeline": 300,
-#}
+ITEM_PIPELINES = {
+    "hm_online_fashion.pipelines.HmOnlineFashionPipeline": 300,
+}
 
 # Enable and configure the AutoThrottle extension (disabled by default)
 # See https://docs.scrapy.org/en/latest/topics/autothrottle.html
