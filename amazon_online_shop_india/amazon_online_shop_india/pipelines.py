@@ -24,4 +24,6 @@ class AmazonOnlineShopIndiaPipeline:
             adapter['sizes'] = ", ".join(adapter['sizes'])
         if adapter.get("product_titles"):
             adapter['product_titles'] = adapter['product_titles'].strip()
+        if adapter.get('other_img_colors_products'):
+            adapter['other_img_colors_products'] = [adapter['other_img_colors_products']]
         return item

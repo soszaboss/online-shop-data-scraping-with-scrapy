@@ -22,6 +22,7 @@ NEWSPIDER_MODULE = "amazon_online_shop_india.spiders"
 
 # Obey robots.txt rules
 ROBOTSTXT_OBEY = False
+
 FEEDS = {
    "products.json": {"format": "json", "overwrite": True},
 }
