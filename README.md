@@ -112,6 +112,12 @@ We created a loop to iterate through the first 25 paginations. The loop is desig
 **Solution:**
 We use a combination of proxies and fake headers to bypass Amazon's anti-bot systems. This approach helps to simulate genuine user requests, allowing the scraper to collect the necessary data without being blocked.
 
+### H&M
+
+**Challenge:**
+    1. Dynamic Content Loading: H&M's website loads products dynamically, which requires careful handling to ensure all products are scraped.
+    2. Complex CSS Selectors: Extracting specific elements, such as size charts and body measurements, involves navigating complex CSS selectors and XPaths.
+
 ## Contributing
 
 We welcome contributions! Please follow these steps to contribute:
