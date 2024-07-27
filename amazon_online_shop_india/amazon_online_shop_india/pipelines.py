@@ -7,7 +7,7 @@
 # useful for handling different item types with a single interface
 from itemadapter import ItemAdapter
 from .functions import list_product_details_into_dict
-
+import pymongo
 
 
 class AmazonOnlineShopIndiaPipeline:
