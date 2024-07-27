@@ -34,7 +34,7 @@ class FlipkartShopPipeline:
 
 
 class MongoPipeline:
-    collection_name = 'sari'
+    collection_name = 'flipkart'
 
     def __init__(self, mongo_uri, mongo_db):
         self.mongo_uri = mongo_uri

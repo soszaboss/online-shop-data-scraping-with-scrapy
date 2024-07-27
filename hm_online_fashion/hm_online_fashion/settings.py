@@ -12,7 +12,7 @@ BOT_NAME = "hm_online_fashion"
 SPIDER_MODULES = ["hm_online_fashion.spiders"]
 NEWSPIDER_MODULE = "hm_online_fashion.spiders"
 PLAYWRIGHT_LAUNCH_OPTIONS = {
-    "headless": True,
+    "headless": False,
 } 
 FEEDS = {
    "products.json": {"format": "json", "overwrite": False},

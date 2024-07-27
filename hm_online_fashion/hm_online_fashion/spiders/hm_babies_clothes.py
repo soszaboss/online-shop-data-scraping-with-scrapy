@@ -4,83 +4,73 @@ from scrapy_playwright.page import PageMethod
 from hm_online_fashion.items import HmOnlineFashionItem
 
 class HmSpider(scrapy.Spider):
-    name = "hm"
+    name = "hm_babies_clothes"
     allowed_domains = ["www2.hm.com"]
  
-    def __init__(self, name: str | None = None, **kwargs: Any):
-        super().__init__(name, **kwargs)
-        self.urls = {
-                    #"men": "https://www2.hm.com/en_in/sale/men/view-all.html?sort=stock&image-size=small&image=model&offset=0&page-size=500", 
-                    "kids": 'https://www2.hm.com/en_in/sale/kids/products.html?sort=stock&image-size=small&image=model&offset=0&page-size=500',
-                    #"baby": 'https://www2.hm.com/en_in/sale/baby.html?sort=stock&image-size=small&image=stillLife&offset=0&page-size=278'
-                      }
-        self.category = ""        
+          
     def start_requests(self):
-        for category, url in self.urls.items():
-            self.category = category
-            yield scrapy.Request(
-                url,
-                # headers=get_random_header(header_list),
-                meta=dict(
-                    playwright=True,
-                    playwright_include_page=True,
-                    playwright_page_methods=[
-                        # PageMethod('wait_for_timeout', 40000),
-                        PageMethod('wait_for_selector', 'a.link'),
-                        # PageMethod("evaluate", "window.scrollBy(0, document.body.scrollHeight)")
-                    ],
-                    errback=self.errback,
-                )
+        url = "https://www2.hm.com/en_in/sale/baby.html?sort=stock&image-size=small&image=stillLife&offset=0&page-size=278"
+        yield scrapy.Request(
+            url,
+            meta=dict(
+                playwright=True,
+                playwright_include_page=True,
+                playwright_page_methods=[
+                    PageMethod('wait_for_selector', 'a.link'),
+                    PageMethod("evaluate", "window.scrollBy(0, document.body.scrollHeight)")
+                ],
+                errback=self.errback,
             )
+        )
 
     async def parse(self, response):
         page = response.meta["playwright_page"]
         await page.wait_for_timeout(3000)
 
 
-        # while True:
-        #     # Sélectionner le bouton "Load more products" et sortir de la boucle s'il n'est plus dans le DOM
-        #     load_more_button = await page.locator("button.button.js-load-more").element_handle()
-        #     if not load_more_button or not await load_more_button.is_visible():
-        #         await page.wait_for_timeout(2000)
-        #         break
+        while True:
+            # Sélectionner le bouton "Load more products" et sortir de la boucle s'il n'est plus dans le DOM
+            load_more_button = await page.locator("button.button.js-load-more").element_handle()
+            if not load_more_button or not await load_more_button.is_visible():
+                await page.wait_for_timeout(2000)
+                break
             
-        #     # Scroller vers le bas de la page
-        #     await page.evaluate("window.scrollTo(0, document.body.scrollHeight);")
+            # Scroller vers le bas de la page
+            await page.evaluate("window.scrollTo(0, document.body.scrollHeight);")
 
-        #     # Cliquer sur le bouton "Load more products" après avoir scrollé en bas
-        #     await load_more_button.click(force=True)
+            # Cliquer sur le bouton "Load more products" après avoir scrollé en bas
+            await load_more_button.click(force=True)
             
-        #     # Attendre que les produits soient chargés
-        #     await page.wait_for_timeout(2000)
+            # Attendre que les produits soient chargés
+            await page.wait_for_timeout(2000)
 
 
-        # Récupérer les nouveaux liens des produits
-        new_links = await page.evaluate('''() => {
-            return Array.from(document.querySelectorAll('a.link')).map(a => a.href);
-        }''')
+            # Récupérer les nouveaux liens des produits
+            new_links = await page.evaluate('''() => {
+                return Array.from(document.querySelectorAll('a.link')).map(a => a.href);
+            }''')
 
 
-        for link in new_links:
-            yield scrapy.Request(
-                                    link,   
-                                    # headers=get_random_header(header_list),
-                                    callback=self.parse_product,
-                                    meta=dict(
-                                        playwright=True,
-                                        playwright_include_page=True, 
-                                        playwright_page_methods=[
-                                            # PageMethod('wait_for_timeout', 60000),
-                                            PageMethod('wait_for_selector', 'div.inner'),
-                                            PageMethod('wait_for_selector', 'li.list-item'),
-                                            PageMethod('wait_for_selector', 'a.filter-option.miniature'),
-                                            PageMethod('wait_for_selector', 'button#toggle-descriptionAccordion'),
-                                            # PageMethod('click', 'button#toggle-descriptionAccordion')
+            for link in new_links:
+                yield scrapy.Request(
+                                        link,   
+                                        # headers=get_random_header(header_list),
+                                        callback=self.parse_product,
+                                        meta=dict(
+                                            playwright=True,
+                                            playwright_include_page=True, 
+                                            playwright_page_methods=[
+                                                # PageMethod('wait_for_timeout', 60000),
+                                                PageMethod('wait_for_selector', 'div.inner'),
+                                                PageMethod('wait_for_selector', 'li.list-item'),
+                                                PageMethod('wait_for_selector', 'a.filter-option.miniature'),
+                                                PageMethod('wait_for_selector', 'button#toggle-descriptionAccordion'),
+                                                # PageMethod('click', 'button#toggle-descriptionAccordion')
 
-                                        ],
-                                        errback=self.errback,
+                                            ],
+                                            errback=self.errback,
+                                        )
                                     )
-                                )
         await page.close()
 
     async def parse_product(self, response):
@@ -137,7 +127,7 @@ class HmSpider(scrapy.Spider):
             items['other_img_colors_products'] = {key:value for key,value in zip(items['color'][1::], other_img_colors_products)}
         except:
             items['other_img_colors_products'] = None
-        items['category'] = self.category
+        items['category'] = "Kids"
         await page.close()
         yield items
     async def errback(self, failure):
