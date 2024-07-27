@@ -1,7 +1,3 @@
-Sure, here's the complete README incorporating all the sections we've discussed:
-
----
-
 # Online E-commerce Scraping
 
 ## Introduction
