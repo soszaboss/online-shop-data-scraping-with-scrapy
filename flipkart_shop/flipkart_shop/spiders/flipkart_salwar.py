@@ -3,7 +3,7 @@ from scrapy_playwright.page import PageMethod
 from flipkart_shop.items import Item
 
 class FlipkartSpider(scrapy.Spider):
-    name = "flipkart"
+    name = "flipkart_salwar"
     allowed_domains = ["www.flipkart.com"]
 
     def start_requests(self):
